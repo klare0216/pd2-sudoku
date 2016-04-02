@@ -107,8 +107,11 @@ void Sudoku::flip(int n)
 
 void Sudoku::transform()
 {
+ 
+  showSudoku();
   readIn();
   change();
+  
 }
 
 void Sudoku::change()
@@ -131,7 +134,6 @@ void Sudoku::readIn()
 
 void Sudoku::solve()
 {
-  qaEqual();
   int i;
   if(SudokuIsCorrect())solving();
   cout << ct <<endl;
@@ -154,9 +156,12 @@ void Sudoku::solving()
     }
     if (index == -1)
     {
-      for(i = 0;i < 81;++i)
-        setOut(i, getAns(i));
-      if (SudokuIsCorrect()) ct ++;
+      if (SudokuIsCorrect()) 
+      {
+        for(i = 0;i < 81;++i)
+          setOut(i, getAns(i));
+        ct ++;
+      }
       return;
     }
     for(num = 1;num <= 9;++num)
