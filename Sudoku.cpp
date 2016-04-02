@@ -27,12 +27,14 @@ void Sudoku::changeNum(int a, int b)
       setAns(i, a);
     }
   }
+  qaEqual();
 }
+
 
 void Sudoku::changeRow(int a, int b)
 {
   int i, temp[27];
-  for (i = 0;i < 27;i++)
+  for (i = 0;i < 27;++i)
   {
     temp[i] = getAns(a * 27 + i);
     setAns(a * 27 + i, getAns(b * 27 + i)); 
@@ -41,6 +43,78 @@ void Sudoku::changeRow(int a, int b)
   {
     setAns(b * 27 + i, temp[i]); 
   }
+  qaEqual();
+}
+
+void Sudoku::changeCol(int a, int b)
+{
+  int temp[27];
+  int i;
+  for(i = 0;i < 27;++i)
+  {
+    temp[i] = getAns(a * 3 + (i / 3) * 9 + i % 3);
+    setAns((a * 3 + (i / 3) * 9 + i % 3),getAns(b * 3 + (i / 3) * 9 + i % 3));
+  }
+  for(i = 0;i < 27;++i)
+  {
+    setAns((b * 3 + (i / 3) * 9 + i % 3),temp[i]);  
+  }
+  qaEqual();
+}
+
+void Sudoku::rotate(int n)
+{
+  int i = 1;
+  while( n != 0)
+  {
+    n--;
+    for(i = 0;i < 81;++i)
+    { 
+        setAns((i % 9) * 9 + (8 - i / 9), getQues(i));
+    }
+    for(i = 0;i <81;++i)
+    {
+      setQues(i,getAns(i));
+    }
+  }
+  qaEqual();
+}
+
+void Sudoku::flip(int n)
+{
+  int i, j;
+  if(n == 0)
+  {
+    for(i = 0;i < 36;++i)
+    { 
+      setAns((72 - (i/9)*9 +i%9), getQues(i));
+      setAns(i,getQues(72 - (i/9)*9 +i%9));
+    }
+  }
+  else if(n == 1)
+  {
+    for(j = 0;j <= 4 ;++j)
+    {
+      for(i = 0;i < 9;++i)
+      {
+        setAns((8-j+i*9), getQues(i*9+j)); 
+        setAns(i*9+j, getQues(8-j+i*9)); 
+      }
+    }
+  }
+  qaEqual();
+}
+
+void Sudoku::transform()
+{
+  readIn();
+  change();
+}
+
+void Sudoku::change()
+{
+  changeNum(1,2);
+  rotate(2);
 }
 
 void Sudoku::readIn()
@@ -57,27 +131,52 @@ void Sudoku::readIn()
 
 void Sudoku::solve()
 {
+  qaEqual();
+  int i;
+  if(SudokuIsCorrect())solving();
+  cout << ct <<endl;
+  if (ct == 1)
+  {
+    showSudoku(out);
+  }
+}
+
+void Sudoku::solving()
+{
+  int i;
   int num;
   int index;
-  int conti = true;
   index = getNextZeroIndex();
-    if(ct > 1) exit(1);
+    if(ct > 1)
+    {
+      cout << 2 << endl;
+      exit(1);
+    }
     if (index == -1)
     {
-      ct ++;
-      showSudoku();
+      for(i = 0;i < 81;++i)
+        setOut(i, getAns(i));
+      if (SudokuIsCorrect()) ct ++;
       return;
     }
     for(num = 1;num <= 9;++num)
     {
       setAns(index, num);
-      if(isCorrect(index)){
+      if(isCorrect(index, num)){
         setQues(index, num);
-        solve();
+        solving();
       }
       setQues(index, 0);
     }
     setAns(index, 0);
+}
+
+void Sudoku::qaEqual()
+{
+  int i;
+  for(i = 0;i < 81;i++)
+    ques[i] = ans[i];
+
 }
 
 void Sudoku::setQues(int index, int num)
@@ -88,6 +187,11 @@ void Sudoku::setQues(int index, int num)
 void Sudoku::setAns(int index, int num)
 {
   ans[index] = num;
+}
+
+void Sudoku::setOut(int index, int num)
+{
+  out[index] = num;
 }
 
 void Sudoku::addCt()
@@ -105,27 +209,46 @@ int Sudoku::getAns(int index)
   return ans[index];
 }
 
+int Sudoku::getOut(int index)
+{
+  return out[index];
+}
 
-bool Sudoku::isCorrect(int x)
+bool Sudoku::SudokuIsCorrect()
+{
+  int i;
+  for(i = 0;i < 81;++i)
+  {
+    ques[i] = -1;
+    if (!isCorrect(i, ans[i])) 
+    {
+      return false;
+    }
+    ques[i] = ans[i];
+  }
+  return true;
+}
+
+bool Sudoku::isCorrect(int x, int num)
 {
   int i, row = x / 9, col = x % 9;
-  int block = (row / 3)* 27 + (col / 3)*3;
-
+  int block = (row / 3)* 27 + (col / 3)*3;  
+  if (ans[x] == 0) return true;
   for(i = 0;i < 9;i++)
   {
-    if(getQues(row * 9 + i) == getAns(x))
+    if(getQues(row * 9 + i) == num)
     {
       return false;
-    }    else if(getQues(col + i * 9) == getAns(x))
+    }    else if(getQues(col + i * 9) == num)
     {
       return false;
-    }    else if((i+1) / 3 == 0 && getQues(block+i)==getAns(x))
+    }    else if((i+1) / 3 == 0 && getQues(block+i)==num)
     {
       return false;
-    }    else if((i+1) / 3 == 1 && getQues(block + 9 + i % 3)==getAns(x))
+    }    else if((i+1) / 3 == 1 && getQues(block + 9 + i % 3)==num)
     {
       return false;
-    }    else if((i+1) / 3 == 2 && getQues(block + 18 + i % 3)==getAns(x))
+    }    else if((i+1) / 3 == 2 && getQues(block + 18 + i % 3)==num)
     {
       return false;
     }
@@ -148,13 +271,23 @@ int Sudoku::getNextZeroIndex()
 void Sudoku::showSudoku()
 {
   int i;
-  cout << ct << endl;
   for(i = 0;i < 81;++i)
   {
     cout << ans[i];
     cout << (((i+1) % 9) == 0 ? "\n" : " ");
   }
 }
+
+void Sudoku::showSudoku(int x[])
+{
+  int i;
+  for(i = 0;i < 81;++i)
+  {
+    cout << out[i];
+    cout << (((i+1) % 9) == 0 ? "\n" : " ");
+  }
+}
+
 
 void Sudoku::fileInput()
 {
