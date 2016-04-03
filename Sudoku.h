@@ -35,4 +35,5 @@ class Sudoku{
     int ques[81];
     int ans[81];
     int ct;
+
 };
