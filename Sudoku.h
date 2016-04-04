@@ -21,19 +21,21 @@ class Sudoku{
     int getQues(int index);
     int getAns(int index);
     int getOut(int index);
-    bool isCorrect(int x, int num);
-    int getNextZeroIndex();
+    bool isCorrect(int x);
+    bool isCorrect2(int x, int num);
     void showSudoku();
     void showSudoku(int x[]);
     void fileInput();
-    private:
+    
     void qaEqual();
+    void addElement(int index, int num, int v);
     bool SudokuIsCorrect();
-    void solving();
+    void solving(int index);
     void change();
+    int COL[9][10], ROW[9][10], BLOCK[9][10];
     int out[81];
     int ques[81];
     int ans[81];
     int ct;
-
+    int n;
 };
