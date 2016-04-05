@@ -14,27 +14,20 @@ class Sudoku{
     void rotate(int n);
     void flip(int n);
     void transform();
-    void setQues(int index, int num);
-    void setAns(int index, int num);
-    void setOut(int index,int num);
-    void addCt();
-    int getQues(int index);
-    int getAns(int index);
-    int getOut(int index);
-    bool isCorrect(int x);
     bool isCorrect2(int x, int num);
-    void showSudoku();
     void showSudoku(int x[]);
     void fileInput();
-    
-    void qaEqual();
+    private:    
+    void Equal(int a[], int b[]); //let b[x]=a[x]
     void addElement(int index, int num, int v);
     bool SudokuIsCorrect();
     void solving(int index);
     void change();
+    void setPossibleArray(int index);
+    int findLessPossibleIndex();
     int COL[9][10], ROW[9][10], BLOCK[9][10];
+    int P[81];
     int out[81];
-    int ques[81];
     int ans[81];
     int ct;
     int n;
