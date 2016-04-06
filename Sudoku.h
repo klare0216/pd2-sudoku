@@ -21,12 +21,14 @@ class Sudoku{
     void Equal(int a[], int b[]); //let b[x]=a[x]
     void addElement(int index, int num, int v);
     bool SudokuIsCorrect();
-    void solving(int index);
+    bool SudokuIsFull();
+    void solving();
     void change();
-    void setPossibleArray(int index);
     int findLessPossibleIndex();
+    void setPossibleArray(int row, int col);
+    void setPossibleArray(int index);
     int COL[9][10], ROW[9][10], BLOCK[9][10];
-    int P[81];
+    int P[9][9];
     int out[81];
     int ans[81];
     int ct;

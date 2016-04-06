@@ -2,7 +2,7 @@
 Sudoku::Sudoku()
 {
   int i,j;
-  ct = 0;
+  ct  = 0;
   n = 0;
   for (i = 0;i < 81;++i)
   {
@@ -38,7 +38,7 @@ void Sudoku::changeNum(int a, int b)
     {
       ans[i] = b; 
     }else if (ans[i] == b){
-      ans[i]=a;
+      ans[i] = a;
     }
   }
 
@@ -77,12 +77,12 @@ void Sudoku::changeCol(int a, int b)
 
 void Sudoku::rotate(int n)
 {
-  int i = 1;
+  int i = 0;
   int temp[81];
-  Equal(ans, temp);
   while( n != 0)
   {
     n--;
+    Equal(ans, temp);
     for(i = 0;i < 81;++i)
     {
       int col = i % 9, row = i / 9;
@@ -93,22 +93,25 @@ void Sudoku::rotate(int n)
 
 void Sudoku::flip(int n)
 {
-  int i, j;
+  int row, col;
   int temp[81];
   Equal(ans, temp);
   if(n == 0)
   {
-    for(i = 0;i < 36;++i)
-    { 
-      ans[2 - (i/9)*9 +i%9] =  temp[i];
-      ans[i] = temp[72 - (i/9)*9 +i%9];
-    }
+    for(row = 0;row <= 4 ;++row)
+      {
+        for(col = 0;col < 9;++col)
+        {
+          ans[row * 9 + col] = temp[(8 - row)* 9 + col]; 
+          ans[(8 - row)* 9 + col] = temp[row * 9 + col]; 
+        }
+      } 
   }
   else if(n == 1)
   {
-    for(j = 0;j <= 4 ;++j)
+    for(int j = 0;j <= 4 ;++j)
     {
-      for(i = 0;i < 9;++i)
+      for(int i = 0;i < 9;++i)
       {
         ans[8-j+i*9] = temp[i*9+j]; 
         ans[i*9+j] = temp[8-j+i*9]; 
@@ -150,9 +153,22 @@ void Sudoku::solve()
   {
     setPossibleArray(i);
   }
+  /* cout << "ooooo P ARRAY" << endl;
+    for(int j = 0;j < 9;++j)
+    {
+    for(int k = 0;k < 9;++k)
+    {
+    cout << P[j][k] << " ";
+    }
+    cout << endl;
+    }
+    cout << "ooooo ANS" << endl;
+  showSudoku(ans);
+  cout << "  " << endl;
+*/
   if(SudokuIsCorrect()) 
   {
-    solving(0);
+    solving();
   }
   cout << ct <<endl;
   if (ct == 1)
@@ -161,48 +177,60 @@ void Sudoku::solve()
   }
 }
 
-void Sudoku::solving(int index)
+void Sudoku::solving()
 {
   int i;
-  int num;
-  int x;
-
+  int num, blank = 0, ps = 0;
+  int index = findLessPossibleIndex();
+ // cout << "///index of lessPos: " << index << endl; 
   if (ct > 1) return;
-  while (index < 81 && ans[index] != 0) ++index;
-  if (index == 81)
+  for (int j = 0;j < 9;j++)
   {
-    if (SudokuIsCorrect()) 
+    blank += COL[j][0];
+    for (int k = 0;k < 9;++k)
+    {
+      if (P[j][k] > 0) ps++;
+    }
+  }
+  if (blank != ps) return;
+ /* cout << "blank: " << blank << ", ps: " << ps << endl;
+  cout << "ooooo P ARRAY" << endl;
+    for(int j = 0;j < 9;++j)
+    {
+    for(int k = 0;k < 9;++k)
+    {
+    cout << P[j][k] << " ";
+    }
+    cout << endl;
+    }
+    cout << "ooooo ANS" << endl;
+  showSudoku(ans);
+  cout << "  " << endl;
+*/
+  
+  /*count the blank of Sudoku*/
+     if (index < 0)
+  {
+    if (SudokuIsFull() && SudokuIsCorrect()) 
     {
       for(i = 0;i < 81;++i)
         out[i] = ans[i];
       ct ++;
+  
     }
     return;
   }
-//  cout << "index : " <<index << endl;
-//  showSudoku(ans);
-  /*
-  for(int j = 0;j < 9;++j)
-    {
-    for(int k = 0;k < 10;++k)
-    {
-    cout << BLOCK[j][k] << " ";
-    }
-    cout << endl;
-    }
-    */
-// if (index > 40) exit(1);
+ 
+  // if (index > 40) exit(1);
   for(num = 1;num <= 9;++num)
   {
-    ans[index] = num;
     if(isCorrect2(index, num)){
       addElement(index, num, 1);
-      solving(index + 1);
+      solving();
       if (ct > 1) return;
       addElement(index, num, -1);
     }
   }
-  ans[index] = 0;
 }
 
 void Sudoku::Equal(int a[], int b[])
@@ -211,6 +239,17 @@ void Sudoku::Equal(int a[], int b[])
   for(i = 0;i < 81;i++)
     b[i] = a[i];
 
+}
+
+bool Sudoku::SudokuIsFull()
+{
+  int i, j;
+  for(i = 0;i < 9;++i)
+  {
+    if (COL[i][0] != 0) return false;
+  }
+  
+  return true;
 }
 
 bool Sudoku::SudokuIsCorrect()
@@ -266,37 +305,76 @@ void Sudoku::addElement(int index, int num, int v)
   int row = index / 9;
   if (num == 0) return;
   if (v == 1) ans[index] = num;
+  else ans[index] = 0;
+  /*set how many`of non0*/
   COL[col][num] += v;
   ROW[row][num] += v;
   BLOCK[((row / 3) * 3) + (col / 3)][num] += v;
+  /*set how many of 0*/
   COL[col][0] -= v;
   ROW[row][0] -= v;
   BLOCK[((row / 3) * 3) + (col / 3)][0] -= v;
+  /*maintain P*/
+  /*
+  for(int i = 0;i < 9;++i)
+  {
+    setPossibleArray(row, i) ;
+    setPossibleArray(i, col) ;
+    setPossibleArray((row / 3) * 3 + i / 3, (col / 3)+ i % 3) ;
+  }
+  */
+  for(int i = 0;i < 81;++i)
+    setPossibleArray(i);
+/*
+  cout << "///INDEX : " << index << endl; 
+  cout << "///POSSIBLE ARRAY" << endl;
+  for(int j = 0;j < 9;++j)
+  {
+    for(int k = 0;k < 9;++k)
+      cout << P[j][k] << " ";
+    cout << endl;
+  }
+  cout << "///POSSIBLE ARRAY END" <<endl;
+*/
+
 }
+
+void Sudoku::setPossibleArray(int row, int col)
+{
+  int index = row * 9 + col;
+  int temp = 9;
+  if (ans[index] != 0) 
+  {
+    P[row][col] = 0;
+    return;
+  }
+  for (int i = 1;i < 10;++i)
+    temp -= COL[col][i] | ROW[row][i] | BLOCK[((row / 3) * 3) + (col / 3)][i]; 
+  P[row][col] = temp;
+}
+
 
 void Sudoku::setPossibleArray(int index)
 {
-  if (ans[index] != 0) 
-  {
-    P[index] = 0;
-    return;
-  }
-
   int col = index % 9;
   int row = index / 9;
-
-  P[index] = COL[col][0] + ROW[row][0] + BLOCK[((row / 3) * 3) + (col / 3)][0]; 
+  setPossibleArray(row, col);
 }
 
 int Sudoku::findLessPossibleIndex()
 {
-  int i, min_p = 0, min_index = -1;
-  for(i = 0;i < 81;++i)
+  int i, j, min_p = 0, min_index = -1;
+  for(i = 0;i < 9;++i)
   {
-    if (min_p > 0 || P[i] < min_p)
+    for(j = 0;j < 9;++j)
     {
-      min_p = P[i];
-      min_index = i;
+      if (P[i][j] != 0 && (min_p == 0 || P[i][j] < min_p))
+      {
+  //      cout << "///(316)///" << min_p << " " << i << " " << j << endl;
+        min_p = P[i][j];
+        min_index = i * 9 + j;
+        if (min_p == 1) break;
+      }
     }
   }
   return min_index;
