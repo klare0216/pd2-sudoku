@@ -4,27 +4,97 @@ Sudoku::Sudoku()
   int i,j;
   ct  = 0;
   for (i = 0;i < 81;++i)
-  {
-    ans[i] = 0;
-    out[i] = 0;
-  }
-  for (i = 0;i < 9;++i)
-  {
-    for (j = 0;j < 10;++j)
-    {
-      if(j == 0)
-      {
-        COL[i][j] = ROW[i][j] = BLOCK[i][j] = 9;
-      } else{
-        COL[i][j] = ROW[i][j] = BLOCK[i][j] = 0;
-      }
-    }
-  }
+    ans[i] = out[i] = P[i / 9][i % 9] = 0;
+  initializeCRB();
 }
 
 void Sudoku::giveQuestion()
+{ 
+  srand(time(0));
+  int rand_t, temp;
+  int num[30] = {0,0,0,0,0,
+                 0,1,0,0,0,
+                 0,0,0,1,2,
+                 0,4,5,6,7,
+                 0,0,0,8,9,
+                 0,0,2,0,0};
+  int ques[81] = {0,0,6,0,0,3,0,0,0, 
+                  0,0,0,8,9,0,0,0,0, 
+                  4,0,5,0,0,0,0,0,0,
+                  0,0,0,0,0,0,0,0,5,
+                  0,2,0,0,0,1,0,0,0,
+                  0,9,0,0,0,0,0,0,6,
+                  0,3,0,0,0,0,8,0,0,
+                  0,0,1,0,0,0,2,0,0,
+                  0,0,0,0,4,5,0,0,0};
+    /*  do {
+    initializeAns();
+    for(int i = 0;i < 10;i++)
+    {
+      rand_t = num[rand() % 30];
+      if(isCorrect2(i, rand_t)) 
+      {  
+        addElement(i, rand_t, 1);
+      } else i--;
+    } 
+    //showSudoku(ans);
+    solveForCheck();
+    if (ct == 0) continue;
+    change();
+    Equal(ans, ques);
+    digging(0);
+    break;
+    while((81 - blank(ques)) > 24)
+    {
+      Equal(ques, ans);
+      rand_t = rand() % 81;
+      if (ans[rand_t] == 0) continue;
+      ans[rand_t] = 0;
+      ct = 0;
+      solve();
+      if (ct == 1)
+      {
+        ques[rand_t] = 0; 
+      }
+
+    }
+  } while(ct != 1);
+  */
+  Equal(ques, ans);
+  change();
+  //cout << "///HINTS: " << 81 - blank(ans)<< endl;
+  //cout << "///QUESSSS///" << endl;
+  showSudoku(ans);
+  //cout << "///solve///" << endl;
+}
+
+void Sudoku::digging(int index)
 {
-  cout << "0 4 0 2 1 0 0 0 0\n8 0 7 0 0 0 0 9 0\n2 0 0 8 0 0 4 0 1\n3 0 0 0 0 2 9 0 5\n0 0 5 7 0 8 6 0 0\n7 0 6 5 0 0 0 0 4\n5 0 1 0 0 4 0 0 9\n0 6 0 0 0 0 7 0 8\n0 0 0 0 2 7 0 5 0"<<endl;
+  int temp[81];
+  //cout << "index: " << index << endl;
+  //if (index ==  15) exit(0);
+  if (index > 80) return;
+  Equal(ans, temp);
+  ans[index] = 0;
+  solveForCheck();
+  if (ct == 1) 
+  {
+    temp[index] = 0;
+    Equal(temp, ans);
+    digging(index + 1);
+  } else{
+    Equal(temp, ans);
+    digging(index + 1);
+  }
+  index++;
+}
+int Sudoku::blank(int x[])
+{
+  int n = 0;
+  for (int i = 0;i < 81;++i)
+    if(x[i] == 0) n++;
+
+  return n;
 }
 
 void Sudoku::changeNum(int a, int b)
@@ -128,8 +198,12 @@ void Sudoku::transform()
 
 void Sudoku::change()
 {
-  changeNum(1,2);
-  rotate(2);
+  srand(time(0));
+  changeNum(rand() % 9 + 1,rand() % 9 + 1);
+  rotate(rand() % 100);
+  flip(rand() % 2);
+  changeRow(rand() % 3, rand() % 3);
+  changeCol(rand() % 3, rand() % 3);
 }
 
 void Sudoku::readIn()
@@ -139,16 +213,34 @@ void Sudoku::readIn()
     cin >> ans[i];
 }
 
-void Sudoku::solve()
+void Sudoku::solveForCheck()
 {
-  int i;
+  int i, j;
+  ct = 0;
+  initializeCRB();
   for(i = 0;i < 81;++i)
     addElement(i, ans[i], 1);
-  if(SudokuIsCorrect()) 
+  for(i = 0;i < 81;++i)
+    setPossibleArray(i);
+  if(SudokuIsCorrect())
+    solving();
+}
+
+
+void Sudoku::solve()
+{
+  int i, j;
+  ct = 0;
+  initializeCRB();
+  for(i = 0;i < 81;++i)
+    addElement(i, ans[i], 1);
+  for(i = 0;i < 81;++i)
+    setPossibleArray(i);
+  if(SudokuIsCorrect())
     solving();
   cout << ct <<endl;
   if (ct == 1)
-    showSudoku(out);
+  showSudoku(out);
 }
 
 void Sudoku::solving()
@@ -311,3 +403,26 @@ int Sudoku::findLessPossibleIndex()
   }
   return min_index;
 }
+
+void Sudoku::initializeCRB()
+{
+  for (int i = 0;i < 9;++i)
+  {
+    for (int j = 0;j < 10;++j)
+    {
+      if(j == 0)
+      {
+        COL[i][j] = ROW[i][j] = BLOCK[i][j] = 9;
+      } else{
+        COL[i][j] = ROW[i][j] = BLOCK[i][j] = 0;
+      }
+    }
+  }
+}
+
+void Sudoku::initializeAns()
+{
+  for(int i = 0;i < 81;++i)
+    ans[i] = 0;
+}
+
